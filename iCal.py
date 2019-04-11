@@ -1,7 +1,9 @@
 from event import event
+import datetime
 class iCal:
 
     def __init__(self, data):
+        start = datetime.datetime.now()
         self.plain = data
         # save all the data into a list
         self.plainlist = data.splitlines()
@@ -10,6 +12,7 @@ class iCal:
         endOfInfo = self.plainlist.index('BEGIN:VEVENT')
         self.fileInfo = self.plainlist[:endOfInfo]
         self.splitData(endOfInfo)
+        print("time taken:(ms) ",(datetime.datetime.now() - start).total_seconds() * 1000)
 
     def getAll(self):
         return self.plain
@@ -25,10 +28,13 @@ class iCal:
             self.events.append(event(i))
 
     def getEventRaw(self):
-        return self.events
+        return '\n'.join(["{} in {}".format(event.course(i), event.location(i)) for i in self.events])
 
     def getEvent(self, index):
-        return self.events[index]
+        return event.time(self.events[index])
+
+    def getEventItem(self, index):
+        return '\n'.join([event.item(i, index) for i in self.events])
 
 
 def splitAtEvent(toSplit):
