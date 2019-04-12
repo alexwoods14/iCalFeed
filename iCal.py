@@ -14,6 +14,7 @@ class iCal:
         self.splitData(endOfInfo)
         print("time taken:(ms) ",(datetime.datetime.now() - start).total_seconds() * 1000)
 
+
     def getAll(self):
         return self.plain
 
@@ -31,7 +32,8 @@ class iCal:
         return '\n'.join(["{} in {}".format(event.course(i), event.location(i)) for i in self.events])
 
     def getEvent(self, index):
-        return event.time(self.events[index])
+        
+        return event.details(self.events[index])
 
     def getEventItem(self, index):
         return '\n'.join([event.item(i, index) for i in self.events])
