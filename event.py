@@ -4,11 +4,19 @@ import time
 
 class event:
     def __init__(self, data):
+        print("1: {}\n2: {}\n3: {}\n4: {}\n5: {}".format(data[1],data[2],data[3],data[4],data[5]))
         self.plain = data
         self.course = data[1].strip("SUMMARY:")
         self.location = data[2].strip("LOCATION:").replace("_",":").replace("\\","")[:-2]
         self.formatDesc(data[3].strip("DESCRIPTION:"))
-        self.calcWeeks(re.sub(r".*(Weeks)?\:", "",data[4]))
+
+        # weeks is actually in description but often over runs into 4th line
+        if "TZID" in data[4]:
+            self.calcWeeks(re.sub(r".*(Weeks)?\:", "",data[3]))
+        else:
+            self.calcWeeks(re.sub(r".*(Weeks)?\:", "","{}{}".format(data[3],data[4])))
+
+
         if "DTSTART" in data[5]:
             self.startTime, self.endTime, self.day = calcTime(data[5].strip("DTSTART:"), data[6].strip("DTEND:"))
         else:
@@ -39,17 +47,22 @@ class event:
         return "{}: {} \n{}".format(self.course, self.description, self.location)
 
     def calcWeeks(self, weeksString):
-        weeksString = weeksString.replace("\\,","")
-        weeksList = weeksString.split(" ")
+        print(weeksString)
+        weeksString = weeksString.replace("\\","").replace(" ", "").strip(" ")
+        print(weeksString)
+        weeksList = weeksString.split(",")
         final = []
         for week in weeksList:
             if "-" in week: 
                 a, b = week.split('-')
                 final.extend(map(str, range(int(a), int(b)+1)))
             else:
-                final.append(week)
+                if week is not '':
+                    final.append(int(week))
 
         self.weeks = final
+        print(final)
+        print("")
 
     def formatDesc(self, desc):
         start = desc.index('\\n')
