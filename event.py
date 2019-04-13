@@ -1,10 +1,9 @@
 import re
 import datetime
-import time
 
 class event:
     def __init__(self, data):
-        print("1: {}\n2: {}\n3: {}\n4: {}\n5: {}".format(data[1],data[2],data[3],data[4],data[5]))
+        #print("1: {}\n2: {}\n3: {}\n4: {}\n5: {}".format(data[1],data[2],data[3],data[4],data[5]))
         self.plain = data
         self.course = data[1].strip("SUMMARY:")
         self.location = data[2].strip("LOCATION:").replace("_",":").replace("\\","")[:-2]
@@ -44,25 +43,21 @@ class event:
         return self.startTime, self.endTime
 
     def details(self):
-        return "{}: {} \n{}".format(self.course, self.description, self.location)
+        #return "{}: {} \n{}\nWeeks: {}\nfrom {} til {} on day {}".format(self.course, self.description, self.location, self.weeks, self.startTime, self.endTime, self.day) # as string
+        return [self.course, self.description, self.location, self.startTime, self.endTime, self.day] # as list
 
     def calcWeeks(self, weeksString):
-        print(weeksString)
         weeksString = weeksString.replace("\\","").replace(" ", "").strip(" ")
-        print(weeksString)
         weeksList = weeksString.split(",")
         final = []
         for week in weeksList:
             if "-" in week: 
                 a, b = week.split('-')
-                final.extend(map(str, range(int(a), int(b)+1)))
+                final.extend(map(int, range(int(a), int(b)+1)))
             else:
-                if week is not '':
-                    final.append(int(week))
+                final.append(int(week))
 
         self.weeks = final
-        print(final)
-        print("")
 
     def formatDesc(self, desc):
         start = desc.index('\\n')
@@ -75,5 +70,5 @@ def calcTime(startString, endString):
     #implement
     start = datetime.time(int(startString[9:11]), int(startString[11:13]), 0, 0, tzinfo=None)
     end = datetime.time(int(endString[9:11]), int(endString[11:13]), 0, 0, tzinfo=None)
-    day = datetime.date(int(startString[:4]), int(startString[4:6]), int(startString[6:8]))
+    day = datetime.date(int(startString[:4]), int(startString[4:6]), int(startString[6:8])).weekday()
     return start, end, day
