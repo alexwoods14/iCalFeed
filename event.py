@@ -40,7 +40,10 @@ class event:
         return self.weeks
 
     def time(self):
-        return self.startTime, self.endTime
+        return (self.startTime.hour + self.startTime.minute/60), (self.endTime.hour + self.endTime.minute/60)
+
+    def day(self):
+        return self.day
 
     def details(self):
         #return "{}: {} \n{}\nWeeks: {}\nfrom {} til {} on day {}".format(self.course, self.description, self.location, self.weeks, self.startTime, self.endTime, self.day) # as string

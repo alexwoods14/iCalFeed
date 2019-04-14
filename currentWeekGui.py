@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import requests
 from iCal import iCal
+from event import event as Event
 from event import event
 import sys
 from datetime import datetime, date, timedelta, time
@@ -62,6 +63,7 @@ def draw(canv, event):
 
 
 def main():
+    start = datetime.now()
     if("http" in sys.argv[1]):
         data = requests.get(sys.argv[1]).text# url is http feed
     else:
@@ -69,6 +71,7 @@ def main():
             data = content_file.read()
 
     cal = iCal(data)
+    print("time taken:(ms) ",(datetime.now() - start).total_seconds() * 1000)
     
     
     #MyManchester week 0 is 17th Sept 2018
@@ -113,10 +116,11 @@ def main():
         canv.create_line(0, yb + (hour - 9)*h, td*w + xb, yb + (hour - 9)*h)
         canv.create_text(0.5*xb, yb + (hour - 9)*h + yb*0.5, text="{:02d}00".format(hour))
 
+    #print(weekToShow)
     
-    
-    for event in weekToShow:
-        draw(canv, event)
+    for day in weekToShow:
+        for event in day:
+            draw(canv, Event.details(event))
 
 
 

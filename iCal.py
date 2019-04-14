@@ -3,7 +3,6 @@ import datetime
 class iCal:
 
     def __init__(self, data):
-        start = datetime.datetime.now()
         self.plain = data
         # save all the data into a list
         self.plainlist = data.splitlines()
@@ -13,7 +12,6 @@ class iCal:
         self.fileInfo = self.plainlist[:endOfInfo]
         self.splitData(endOfInfo)
         self.sortByWeeks()
-        print("time taken:(ms) ",(datetime.datetime.now() - start).total_seconds() * 1000)
 
 
     def getAll(self):
@@ -42,20 +40,23 @@ class iCal:
     def sortByWeeks(self):
         # loop through each week
         week = []
-        for i in range(0,53):
+        for i in range(0,52):
             week.insert(i,[e for e in self.events if i in event.weeks(e)])
 
         self.sortByDay(week)
 
     def sortByDay(self, byWeek):
-        #byDay = []
-        #for week in byWeek:
-        self.week = byWeek
+        week = []
+        for w in byWeek:
+            byDay = []
+            for i in range (0,7):
+                byDay.insert(i, [e for e in w if i == event.day(e)])
+            week.append(byDay)
 
+        self.week = week
 
     def inWeek(self, weekNo):
-        return ([event.details(e) for e in self.week[weekNo]])
-
+        return self.week[weekNo]
 
 
 def splitAtEvent(toSplit):
