@@ -11,11 +11,9 @@ class iCal:
         endOfInfo = self.plainlist.index('BEGIN:VEVENT')
         self.fileInfo = self.plainlist[:endOfInfo]
         self.splitData(endOfInfo)
-        self.sortByWeeks()
+        print("length = ",len(self.events))
+        #self.sortByWeeks()
 
-
-    def getAll(self):
-        return self.plain
 
     def getList(self):
         return '\n'.join(self.fileInfo)
@@ -25,38 +23,13 @@ class iCal:
         allEventData = splitAtEvent(self.plainlist[start:])
         self.events = []
         for i in allEventData:
-            self.events.append(event(i))
-
-    def getEventRaw(self):
-        return '\n'.join(["{} in {}".format(event.course(i), event.location(i)) for i in self.events])
+            self.events.append(event('\n'.join(i)))
 
     def getEvent(self, index): 
-        return event.details(self.events[index])
+        return event.allInfo(self.events[index])
 
-    def getEventItem(self, index):
-        return '\n'.join([event.item(i, index) for i in self.events])
-
-
-    def sortByWeeks(self):
-        # loop through each week
-        week = []
-        for i in range(0,52):
-            week.insert(i,[e for e in self.events if i in event.weeks(e)])
-
-        self.sortByDay(week)
-
-    def sortByDay(self, byWeek):
-        week = []
-        for w in byWeek:
-            byDay = []
-            for i in range (0,7):
-                byDay.insert(i, [e for e in w if i == event.day(e)])
-            week.append(byDay)
-
-        self.week = week
-
-    def inWeek(self, weekNo):
-        return self.week[weekNo]
+    def onDay(self, date): # date as DateString
+        return '\n'.join([event.some(e) for e in self.events if event.onDay(e, date.date())])
 
 
 def splitAtEvent(toSplit):

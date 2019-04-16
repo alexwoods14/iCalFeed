@@ -1,77 +1,93 @@
 import re
-import datetime
+from datetime import datetime, timedelta
 
 class event:
     def __init__(self, data):
-        #print("1: {}\n2: {}\n3: {}\n4: {}\n5: {}".format(data[1],data[2],data[3],data[4],data[5]))
+        #print("1: {}\n2: {}\n3: {}\n4: {}\n5: {}".format(data[1],data[2],data[3],data[4],data[5]))     
         self.plain = data
-        self.course = data[1].strip("SUMMARY:")
-        self.location = data[2].strip("LOCATION:").replace("_",":").replace("\\","")[:-2]
-        self.formatDesc(data[3].strip("DESCRIPTION:"))
+        keys = ["DTSTAMP","SUMMARY","LOCATION","DESCRIPTION","TZID","DTSTART","DTEND","RRULE","EXDATE","UID"]
+        self.info = {key: None for key in keys}
 
-        # weeks is actually in description but often over runs into 4th line
-        if "TZID" in data[4]:
-            self.calcWeeks(re.sub(r".*(Weeks)?\:", "",data[3]))
-        else:
-            self.calcWeeks(re.sub(r".*(Weeks)?\:", "","{}{}".format(data[3],data[4])))
+        for key in keys:
+            if key in data:
+                start = data.index(key) + len(key) + 1 # +1 is for starting colon :
+                matches = re.search(r"(?=("+'|'.join(keys)+r"))", data[start:])
+                if matches is not None:
+                    end = start + matches.start()
+                    value = data[start:end].replace('\n ' ,'').strip(' \n')
+                else:
+                    value = data[start:].replace('\n ','').strip(' \n')
+
+                if value is '':
+                    value = None
+                
+                if "DT" in key and value is not None:
+                    value = datetime.strptime(value.strip('Z'),"%Y%m%dT%H%M%S") 
+
+                self.info[key] = value
+
+        
+        if self.info["EXDATE"] is not None:
+            self.info["EXDATE"] = [datetime.strptime(date,"%Y%m%dT%H%M%S") for date in self.info["EXDATE"].split(',')] 
+
+        if self.info["RRULE"] is not None:
+            rule = self.info["RRULE"]
+            if "FREQ" in rule:
+                start = rule.index("FREQ") + 5
+                freq = rule[start: rule[start:].index(';') + start].strip('\n ')
+            if "UNTIL" in rule:
+                start = rule.index("UNTIL") + 6
+                try:
+                    until = rule[start: rule[start:].index(';') + start].strip('\n ')
+                except ValueError:
+                    until = rule[start:].strip('\n ')
+                until = datetime.strptime(until.strip('Z'),"%Y%m%dT%H%M%S")
+            self.info["RRULE"] = {"FREQ": freq, "UNTIL": until}
 
 
-        if "DTSTART" in data[5]:
-            self.startTime, self.endTime, self.day = calcTime(data[5].strip("DTSTART:"), data[6].strip("DTEND:"))
-        else:
-            self.startTime, self.endTime, self.day = calcTime(data[6].strip("DTSTART:"), data[7].strip("DTEND:"))
 
+#keys = ["DTSTAMP","SUMMARY","LOCATION","DESCRIPTION","TZID","DTSTART","DTEND","RRULE","EXDATE","UID"]
     def __str__(self):
-        return str(self.plain)
+        return str(self.info)
+
+    def some(self):
+        return "{}\n{}\n{} to {}".format(self.info["SUMMARY"], self.info["DESCRIPTION"], self.info["DTSTART"].time(), self.info["DTEND"].time()) 
 
     def __repr__(self):
         return str(self)
 
-    def course(self):
-        return self.course
-    
-    def location(self):
-        return self.location
+    def allInfo(self):
+        return self.info
 
-    def item(self, idx):
-        return self.plain[idx]
-
-    def weeks(self):
-        return self.weeks
-
-    def time(self):
-        return (self.startTime.hour + self.startTime.minute/60), (self.endTime.hour + self.endTime.minute/60)
-
-    def day(self):
-        return self.day
-
-    def details(self):
-        #return "{}: {} \n{}\nWeeks: {}\nfrom {} til {} on day {}".format(self.course, self.description, self.location, self.weeks, self.startTime, self.endTime, self.day) # as string
-        return [self.course, self.description, self.location, self.startTime, self.endTime, self.day] # as list
-
-    def calcWeeks(self, weeksString):
-        weeksString = weeksString.replace("\\","").replace(" ", "").strip(" ")
-        weeksList = weeksString.split(",")
-        final = []
-        for week in weeksList:
-            if "-" in week: 
-                a, b = week.split('-')
-                final.extend(map(int, range(int(a), int(b)+1)))
+    def onDay(self, date): # date is a datetime
+        if date == self.info["DTSTART"].date():
+            return True
+        if date < self.info["DTSTART"].date():
+            return False
+        if self.info["EXDATE"] is not None:
+            if date in [d.date() for d in self.info["EXDATE"]]:
+                return False
+        if self.info["RRULE"] is not None:
+            if "FREQ" in self.info["RRULE"]:
+                freq = self.info["RRULE"]["FREQ"]
+                if "UNTIL" in self.info["RRULE"]:
+                    until = self.info["RRULE"]["UNTIL"].date()
+                    if date > until:
+                        return False
+                    current = self.info["DTSTART"].date() + timedelta(weeks = 1)
+                    if freq == "WEEKLY":
+                        while current <= until:
+                            if current == date:
+                                return True
+                            elif current > date:
+                                return False
+                            current += timedelta(weeks=1)
+                    else:
+                        return False
+                else:
+                    return False
             else:
-                final.append(int(week))
+                return False
+        else:
+            return False
 
-        self.weeks = final
-
-    def formatDesc(self, desc):
-        start = desc.index('\\n')
-        end = desc[(start + 2):].index('\\n')
-        self.description = desc[start + 2: start + end + 2].capitalize()
-
-
-
-def calcTime(startString, endString):
-    #implement
-    start = datetime.time(int(startString[9:11]), int(startString[11:13]), 0, 0, tzinfo=None)
-    end = datetime.time(int(endString[9:11]), int(endString[11:13]), 0, 0, tzinfo=None)
-    day = datetime.date(int(startString[:4]), int(startString[4:6]), int(startString[6:8])).weekday()
-    return start, end, day
