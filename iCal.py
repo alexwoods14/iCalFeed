@@ -15,7 +15,7 @@ class iCal:
         #self.sortByWeeks()
 
 
-    def getList(self):
+    def getInfo(self):
         return '\n'.join(self.fileInfo)
     
     def splitData(self, start):
@@ -30,6 +30,7 @@ class iCal:
 
     def onDay(self, date): # date as DateString
         return [event.all(e) for e in self.events if event.onDay(e, date.date())]
+
 
 
 def splitAtEvent(toSplit):

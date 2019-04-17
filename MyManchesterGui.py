@@ -86,7 +86,7 @@ def main():
     global today
     today = datetime.today()
     global currentWeekStart
-    currentWeekStart = today - timedelta(days=today.weekday()) - timedelta(weeks=2)
+    currentWeekStart = today - timedelta(days=today.weekday())
     global displayWeekStart
     displayWeekStart = currentWeekStart
 
