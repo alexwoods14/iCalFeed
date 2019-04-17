@@ -29,7 +29,7 @@ class iCal:
         return event.allInfo(self.events[index])
 
     def onDay(self, date): # date as DateString
-        return '\n'.join([event.some(e) for e in self.events if event.onDay(e, date.date())])
+        return [event.all(e) for e in self.events if event.onDay(e, date.date())]
 
 
 def splitAtEvent(toSplit):

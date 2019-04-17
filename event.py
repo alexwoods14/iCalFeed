@@ -47,10 +47,10 @@ class event:
 
 
 #keys = ["DTSTAMP","SUMMARY","LOCATION","DESCRIPTION","TZID","DTSTART","DTEND","RRULE","EXDATE","UID"]
-    def __str__(self):
-        return str(self.info)
+    def all(self):
+        return self.info
 
-    def some(self):
+    def __str__(self):
         return "{}\n{}\n{} to {}".format(self.info["SUMMARY"], self.info["DESCRIPTION"], self.info["DTSTART"].time(), self.info["DTEND"].time()) 
 
     def __repr__(self):
