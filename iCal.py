@@ -26,10 +26,10 @@ class iCal:
             self.events.append(event('\n'.join(i)))
 
     def getEvent(self, index): 
-        return event.allInfo(self.events[index])
+        return self.events[index].allInfo()
 
     def onDay(self, date): # date as DateString
-        return [event.all(e) for e in self.events if event.onDay(e, date.date())]
+        return [e.all() for e in self.events if e.onDay(date.date())]
 
 
 
